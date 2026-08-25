@@ -1,0 +1,13 @@
+﻿.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+**/
+密钥库.md
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
