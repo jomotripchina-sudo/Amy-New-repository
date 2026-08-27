@@ -11,6 +11,8 @@
   const taskCreated = document.querySelector("#task-created");
   const taskIdLabel = document.querySelector("#task-id");
   const userEmail = document.querySelector("#user-email");
+  const workspaceName = document.querySelector("#workspace-name");
+  const returnTool = document.querySelector("#return-tool");
   const retryButton = document.querySelector("#retry-report");
 
   function showState(title, text, options = {}) {
@@ -23,18 +25,35 @@
   }
 
   let session;
-  let supabaseClient;
   try {
     session = await KeywordToolApp.requireSession("../");
     if (!session) return;
-    supabaseClient = KeywordToolApp.getClient();
   } catch (error) {
     showState("页面配置未完成", error.message);
     return;
   }
 
-  const config = KeywordToolApp.getConfig();
-  const taskId = new URLSearchParams(window.location.search).get("task");
+  const query = new URLSearchParams(window.location.search);
+  const workspaceId = query.get("workspace");
+  if (!KeywordToolCore.isUuid(workspaceId)) {
+    showState("业务空间地址无效", "请先从登录页选择对应业务空间。" );
+    return;
+  }
+  let workspace;
+  try {
+    const { workspaces } = await KeywordToolApi.listWorkspaces(session);
+    workspace = workspaces.find((item) => item.id === workspaceId);
+    if (!workspace) {
+      showState("业务空间不可用", "该业务空间不存在或不属于当前登录账号。" );
+      return;
+    }
+  } catch (error) {
+    showState("业务空间核验失败", KeywordToolCore.friendlyDataError(error, "请返回登录页后重试。"));
+    return;
+  }
+  workspaceName.textContent = `空间 · ${workspace.name}`;
+  returnTool.href = `../tool/?workspace=${encodeURIComponent(workspaceId)}`;
+  const taskId = query.get("task");
   if (!KeywordToolCore.isUuid(taskId)) {
     showState("报告地址无效", "任务号缺失或格式不正确，请返回工具页重新打开报告。" );
     return;
@@ -68,12 +87,7 @@
     showState("正在加载作战报告", "正在核对任务权限并获取最新报告，请稍候。", { loading: true });
     retryButton.disabled = true;
     try {
-      const { data: task, error } = await supabaseClient
-        .from(config.taskTable)
-        .select("id,asin,status,failure_reason,report_url,created_at")
-        .eq("id", taskId)
-        .maybeSingle();
-      if (error) throw error;
+      const { task } = await KeywordToolApi.getTask(session, workspaceId, taskId);
       if (!task) {
         showState("没有找到这份报告", "任务不存在，或者它不属于当前登录账号。" );
         return;
@@ -92,7 +106,7 @@
         showState("报告还在生成", `当前状态：${task.status}。后台通常需要 10–30 分钟，你可以稍后再打开。`, { retry: true });
         return;
       }
-      if (!KeywordToolCore.isAllowedReportUrl(task.report_url, config.reportHostSuffix)) {
+      if (!KeywordToolCore.isAllowedReportUrl(task.report_url, KeywordToolApp.getConfig().reportHostSuffix)) {
         showState("报告链接未通过安全校验", "后台返回了非预期的报告地址，页面已阻止加载。请联系管理员检查。" );
         return;
       }

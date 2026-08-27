@@ -6,12 +6,13 @@
   <meta name="description" content="AMZ 运营工作台登录、注册与运营工具入口">
   <meta name="theme-color" content="#1551a3">
   <title>登录｜AMZ 运营工作台</title>
-  <link rel="stylesheet" href="./assets/css/app.css?v=20260827-7">
+  <link rel="stylesheet" href="./assets/css/app.css?v=20260827-9">
   <script defer src="./assets/vendor/supabase.js"></script>
-  <script defer src="./assets/js/config.js?v=20260827-2"></script>
+  <script defer src="./assets/js/config.js?v=20260827-9"></script>
   <script defer src="./assets/js/core.js?v=20260827-3"></script>
   <script defer src="./assets/js/app.js?v=20260827-2"></script>
-  <script defer src="./assets/js/login.js?v=20260827-3"></script>
+  <script defer src="./assets/js/api.js?v=20260827-3"></script>
+  <script defer src="./assets/js/login.js?v=20260827-4"></script>
 </head>
 <body class="auth-page">
   <header class="workbench-topbar">
@@ -42,12 +43,35 @@
       <div class="auth-panel__inner">
         <h2 id="auth-title">登录 AMZ 运营工作台</h2>
         <p class="auth-panel__intro" id="auth-intro">使用工作台账号进入已授权的运营模块。</p>
+        <section class="auth-workspace-picker" id="workspace-picker" aria-labelledby="workspace-picker-title">
+          <div class="auth-workspace-picker__heading">
+            <strong id="workspace-picker-title">选择要进入的空间</strong>
+            <span>数据、任务与报告彼此隔离</span>
+          </div>
+          <div class="auth-workspace-options" role="radiogroup" aria-label="选择业务空间">
+            <button class="auth-workspace-option" type="button" role="radio" aria-checked="false" data-workspace-key="testing">
+              <strong>测试空间</strong><span>流程验证与演练</span>
+            </button>
+            <button class="auth-workspace-option" type="button" role="radio" aria-checked="false" data-workspace-key="personal">
+              <strong>个人空间</strong><span>个人店铺经营</span>
+            </button>
+            <button class="auth-workspace-option" type="button" role="radio" aria-checked="false" data-workspace-key="company">
+              <strong>公司空间</strong><span>公司产品运营</span>
+            </button>
+          </div>
+        </section>
         <div class="auth-tabs" id="auth-tabs" role="tablist" aria-label="登录或注册">
           <button class="tab-button" type="button" role="tab" aria-selected="true" data-auth-tab="login">登录</button>
           <button class="tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-auth-tab="signup">注册</button>
         </div>
 
         <div id="auth-message" class="message auth-status" hidden aria-live="polite"></div>
+
+        <section class="auth-session-entry" id="authenticated-entry" hidden aria-live="polite">
+          <p>当前已登录：<strong id="authenticated-email">—</strong></p>
+          <button class="btn btn--primary btn--full" id="enter-selected-workspace" type="button">进入已选空间</button>
+          <button class="auth-link-button" id="change-account" type="button">切换账号</button>
+        </section>
 
         <form class="auth-form" id="login-form" novalidate>
           <label class="field">

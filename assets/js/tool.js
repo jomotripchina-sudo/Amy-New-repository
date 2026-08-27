@@ -16,16 +16,16 @@
   const emptyState = document.querySelector("#task-empty");
   const taskCount = document.querySelector("#task-count");
   const userEmail = document.querySelector("#user-email");
+  const workspaceName = document.querySelector("#workspace-name");
+  const workspaceDescription = document.querySelector("#workspace-description");
 
   let session;
-  let supabaseClient;
   let refreshTimer;
   let refreshing = false;
 
   try {
     session = await KeywordToolApp.requireSession("../");
     if (!session) return;
-    supabaseClient = KeywordToolApp.getClient();
   } catch (error) {
     KeywordToolApp.setMessage(feedback, "error", error.message);
     form.querySelectorAll("input, button").forEach((control) => { control.disabled = true; });
@@ -33,6 +33,36 @@
   }
 
   const config = KeywordToolApp.getConfig();
+  const workspaceId = new URLSearchParams(window.location.search).get("workspace");
+  if (!KeywordToolCore.isUuid(workspaceId)) {
+    window.location.replace("../");
+    return;
+  }
+  let workspace;
+  try {
+    const { workspaces } = await KeywordToolApi.listWorkspaces(session);
+    workspace = workspaces.find((item) => item.id === workspaceId);
+    if (!workspace) {
+      window.location.replace("../");
+      return;
+    }
+  } catch (error) {
+    KeywordToolApp.setMessage(feedback, "error", KeywordToolCore.friendlyDataError(error, "业务空间暂时无法核验，请返回登录页重试。"));
+    form.querySelectorAll("input, button").forEach((control) => { control.disabled = true; });
+    return;
+  }
+  workspaceName.textContent = `空间 · ${workspace.name}`;
+  let sourceSummary = "手动上传（可用） · 店铺 API（未连接）";
+  try {
+    const { sources } = await KeywordToolApi.listSources(session, workspaceId);
+    sourceSummary = sources.map((source) => {
+      const state = source.connection_status === "ready" ? "可用" : source.connection_status === "connected" ? "已连接" : "未连接";
+      return `${source.label}（${state}）`;
+    }).join(" · ") || sourceSummary;
+  } catch {
+    // Source status is explanatory only; task creation still receives its own server-side validation.
+  }
+  workspaceDescription.textContent = `当前空间：${workspace.name}。数据入口：${sourceSummary}。此处仅显示该空间的任务、报表与数据来源。`;
   userEmail.textContent = session.user.email || "已登录";
   KeywordToolApp.bindSignOut("../");
 
@@ -80,46 +110,22 @@
     }
 
     submitButton.disabled = true;
-    submitButton.textContent = "正在上传报表…";
-    KeywordToolApp.setMessage(feedback, "info", "第 1/2 步：正在安全上传广告报表，请不要关闭页面。" );
-
-    const taskId = crypto.randomUUID();
-    const objectPath = `${session.user.id}/${taskId}.${fileResult.extension}`;
-    let uploaded = false;
+    submitButton.textContent = "正在安全提交…";
+    KeywordToolApp.setMessage(feedback, "info", "正在通过已登录账号安全提交广告报表，请不要关闭页面。" );
     try {
-      const contentType = fileResult.extension === "csv"
-        ? "text/csv"
-        : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      const { error: uploadError } = await supabaseClient.storage
-        .from(config.inboxBucket)
-        .upload(objectPath, file, { cacheControl: "3600", contentType, upsert: false });
-      if (uploadError) throw uploadError;
-      uploaded = true;
-
-      submitButton.textContent = "正在创建任务…";
-      KeywordToolApp.setMessage(feedback, "info", "第 2/2 步：报表已上传，正在创建分析任务。" );
-      const { error: insertError } = await supabaseClient
-        .from(config.taskTable)
-        .insert({
-          id: taskId,
-          user_id: session.user.id,
-          asin: asinResult.value,
-          report_file_path: objectPath,
-          report_start_date: dateResult.startDate,
-          report_end_date: dateResult.endDate,
-          status: "待处理"
-        });
-      if (insertError) throw insertError;
+      await KeywordToolApi.createTask(session, workspaceId, {
+        asin: asinResult.value,
+        reportStartDate: dateResult.startDate,
+        reportEndDate: dateResult.endDate,
+        file
+      });
 
       form.reset();
       fileName.textContent = "点击选择 .xlsx 或 .csv 文件";
       KeywordToolApp.setMessage(feedback, "success", "任务提交成功。后台会自动处理，你可以留在本页查看进度。" );
       await refreshTasks();
     } catch (error) {
-      const fallback = uploaded
-        ? "报表已上传，但任务创建失败。为避免重复文件，请先不要再次提交，并联系管理员处理。"
-        : "报表上传失败，请检查网络和文件后重试。";
-      KeywordToolApp.setMessage(feedback, "error", KeywordToolCore.friendlyDataError(error, fallback));
+      KeywordToolApp.setMessage(feedback, "error", KeywordToolCore.friendlyDataError(error, error.message || "报表提交失败，请检查网络和文件后重试。"));
     } finally {
       submitButton.disabled = false;
       submitButton.textContent = "提交分析任务";
@@ -176,7 +182,7 @@
       if (task.status === "已完成" && task.report_url) {
         const link = document.createElement("a");
         link.className = "mini-link";
-        link.href = `../report/?task=${encodeURIComponent(task.id)}`;
+        link.href = `../report/?workspace=${encodeURIComponent(workspaceId)}&task=${encodeURIComponent(task.id)}`;
         link.textContent = "查看报告";
         actionCell.append(link);
       } else {
@@ -187,43 +193,13 @@
     });
   }
 
-  async function fetchTaskRows() {
-    const currentResult = await supabaseClient
-      .from(config.taskTable)
-      .select("id,asin,report_start_date,report_end_date,status,failure_reason,report_url,created_at,updated_at")
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (!currentResult.error) return currentResult;
-
-    const errorText = `${currentResult.error.code || ""} ${currentResult.error.message || ""}`.toLowerCase();
-    const periodColumnsMissing = ["report_start_date", "report_end_date"].some((column) => errorText.includes(column));
-    if (!periodColumnsMissing) return currentResult;
-
-    const legacyResult = await supabaseClient
-      .from(config.taskTable)
-      .select("id,asin,status,failure_reason,report_url,created_at,updated_at")
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (legacyResult.error) return legacyResult;
-    return {
-      data: (legacyResult.data || []).map((task) => ({
-        ...task,
-        report_start_date: null,
-        report_end_date: null
-      })),
-      error: null
-    };
-  }
-
   async function refreshTasks() {
     if (refreshing) return;
     refreshing = true;
     refreshButton.disabled = true;
     refreshButton.setAttribute("aria-busy", "true");
     try {
-      const { data, error } = await fetchTaskRows();
-      if (error) throw error;
-      const tasks = data || [];
+      const { tasks } = await KeywordToolApi.listTasks(session, workspaceId);
       renderTasks(tasks);
       loadingState.hidden = true;
       emptyState.querySelector("p").textContent = "还没有任务，提交第一份广告报表吧。";

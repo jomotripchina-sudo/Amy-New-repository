@@ -6,12 +6,13 @@
   <meta name="description" content="AMZ 运营工作台关键词作战模块：提交 ASIN 和广告报表，查看分析任务">
   <meta name="theme-color" content="#ffffff">
   <title>关键词作战｜AMZ 运营工作台</title>
-  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-7">
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-9">
   <script defer src="../assets/vendor/supabase.js"></script>
-  <script defer src="../assets/js/config.js?v=20260827-2"></script>
-  <script defer src="../assets/js/core.js?v=20260827-3"></script>
+  <script defer src="../assets/js/config.js?v=20260827-9"></script>
+  <script defer src="../assets/js/core.js?v=20260827-4"></script>
   <script defer src="../assets/js/app.js?v=20260827-2"></script>
-  <script defer src="../assets/js/tool.js?v=20260827-3"></script>
+  <script defer src="../assets/js/api.js?v=20260827-3"></script>
+  <script defer src="../assets/js/tool.js?v=20260827-6"></script>
 </head>
 <body>
   <header class="topbar">
@@ -23,6 +24,8 @@
         <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>关键词作战</span></span>
       </a>
       <div class="topbar__actions">
+        <a class="btn btn--ghost" href="../">切换空间</a>
+        <span class="user-pill" id="workspace-name">正在核对业务空间…</span>
         <span class="user-pill" id="user-email">正在核对登录状态…</span>
         <button class="btn btn--ghost" type="button" data-sign-out>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9"></path></svg>
@@ -37,7 +40,7 @@
       <div>
         <p class="eyebrow">AMZ OPERATIONS · KEYWORD MODULE</p>
         <h1>关键词作战</h1>
-        <p>提交 ASIN 和广告报表，将关键词数据转化为清晰、可执行的运营任务。</p>
+        <p id="workspace-description">提交 ASIN 和广告报表，将关键词数据转化为清晰、可执行的运营任务。</p>
       </div>
     </div>
 
@@ -109,7 +112,7 @@
       </div>
       <div class="table-scroll">
         <table class="data-table" id="task-table" hidden>
-          <caption class="sr-only">当前账号最近提交的关键词分析任务</caption>
+          <caption class="sr-only">当前业务空间最近提交的关键词分析任务</caption>
           <colgroup><col style="width: 210px"><col style="width: 140px"><col style="width: 140px"><col style="width: 140px"><col style="width: 130px"><col style="width: 250px"><col style="width: 130px"></colgroup>
           <thead><tr><th scope="col">提交时间 / 任务号</th><th scope="col">ASIN</th><th scope="col">报告开始日期</th><th scope="col">报告结束日期</th><th scope="col">状态</th><th scope="col">失败原因</th><th scope="col">操作</th></tr></thead>
           <tbody id="task-body"></tbody>
@@ -117,6 +120,6 @@
       </div>
     </section>
   </main>
-  <footer class="page-footer">AMZ 运营工作台 · 关键词作战模块 · 登录数据仅对当前账号可见</footer>
+  <footer class="page-footer">AMZ 运营工作台 · 关键词作战模块 · 数据仅在当前业务空间内可见</footer>
 </body>
 </html>

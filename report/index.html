@@ -6,12 +6,13 @@
   <meta name="description" content="AMZ 运营工作台在线查看关键词作战总表">
   <meta name="theme-color" content="#ffffff">
   <title>关键词作战报告｜AMZ 运营工作台</title>
-  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-7">
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-9">
   <script defer src="../assets/vendor/supabase.js"></script>
-  <script defer src="../assets/js/config.js?v=20260827-2"></script>
-  <script defer src="../assets/js/core.js?v=20260827-3"></script>
+  <script defer src="../assets/js/config.js?v=20260827-9"></script>
+  <script defer src="../assets/js/core.js?v=20260827-4"></script>
   <script defer src="../assets/js/app.js?v=20260827-2"></script>
-  <script defer src="../assets/js/report.js?v=20260827-4"></script>
+  <script defer src="../assets/js/api.js?v=20260827-3"></script>
+  <script defer src="../assets/js/report.js?v=20260827-7"></script>
 </head>
 <body>
   <header class="topbar">
@@ -23,6 +24,8 @@
         <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>关键词作战报告</span></span>
       </a>
       <div class="topbar__actions">
+        <a class="btn btn--ghost" href="../">切换空间</a>
+        <span class="user-pill" id="workspace-name">正在核对业务空间…</span>
         <span class="user-pill" id="user-email">正在核对登录状态…</span>
         <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
       </div>
@@ -41,7 +44,7 @@
           <span class="status-badge status--pending" id="task-status">加载中</span>
         </div>
       </div>
-      <a class="btn btn--secondary" href="../tool/">
+      <a class="btn btn--secondary" id="return-tool" href="../">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
         返回工具页
       </a>
@@ -69,6 +72,6 @@
       <iframe class="report-frame" id="report-frame" title="关键词作战总表" sandbox="" referrerpolicy="no-referrer" hidden></iframe>
     </section>
   </main>
-  <footer class="page-footer">AMZ 运营工作台 · 报告通过当前登录账号校验后在线加载</footer>
+  <footer class="page-footer">AMZ 运营工作台 · 报告通过当前业务空间校验后在线加载</footer>
 </body>
 </html>
