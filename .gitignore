@@ -3,7 +3,8 @@
 !.env.example
 **/.env
 **/.env.*
-**/
+后端/
+node_modules/
 密钥库.md
 *.pem
 *.key

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台登录、注册与运营工具入口">
+  <meta name="theme-color" content="#1551a3">
+  <title>登录｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="./assets/css/app.css?v=20260827-7">
+  <script defer src="./assets/vendor/supabase.js"></script>
+  <script defer src="./assets/js/config.js?v=20260827-2"></script>
+  <script defer src="./assets/js/core.js?v=20260827-3"></script>
+  <script defer src="./assets/js/app.js?v=20260827-2"></script>
+  <script defer src="./assets/js/login.js?v=20260827-3"></script>
+</head>
+<body class="auth-page">
+  <header class="workbench-topbar">
+    <div class="workbench-topbar__inner">
+      <a class="workbench-brand" href="./" aria-label="AMZ 运营工作台登录入口">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true"><span class="logo-mark__text">YE</span></span>
+        <span class="workbench-brand__text"><strong>AMZ 运营工作台</strong><span>Operations Workspace</span></span>
+      </a>
+      <span class="workbench-topbar__meta">安全登录入口</span>
+    </div>
+  </header>
+  <main class="auth-shell" aria-labelledby="auth-title">
+    <section class="auth-brand" aria-label="工作台介绍">
+      <div class="auth-brand__content">
+        <p class="auth-brand__eyebrow">
+          <strong>我的运营工作台</strong>
+          <em>MY OPERATIONS WORKSPACE</em>
+        </p>
+        <h1>一个入口，驱动全部运营动作。</h1>
+        <p class="auth-brand__lead">将分析、执行、复盘，统一至可扩展的可靠工作流中。让工作流随业务一起成长。</p>
+        <div class="workspace-capabilities" aria-label="运营工作流能力">
+          <span>分析</span><b aria-hidden="true">·</b><span>执行</span><b aria-hidden="true">·</b><span>复盘</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-panel__inner">
+        <h2 id="auth-title">登录 AMZ 运营工作台</h2>
+        <p class="auth-panel__intro" id="auth-intro">使用工作台账号进入已授权的运营模块。</p>
+        <div class="auth-tabs" id="auth-tabs" role="tablist" aria-label="登录或注册">
+          <button class="tab-button" type="button" role="tab" aria-selected="true" data-auth-tab="login">登录</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-auth-tab="signup">注册</button>
+        </div>
+
+        <div id="auth-message" class="message auth-status" hidden aria-live="polite"></div>
+
+        <form class="auth-form" id="login-form" novalidate>
+          <label class="field">
+            <span class="field-label">邮箱</span>
+            <input class="field-control" type="email" name="email" autocomplete="email" placeholder="name@example.com" required>
+          </label>
+          <label class="field">
+            <span class="field-label">密码</span>
+            <input class="field-control" type="password" name="password" autocomplete="current-password" placeholder="请输入密码" required>
+          </label>
+          <div class="auth-form-options">
+            <button class="auth-link-button" type="button" data-forgot-password>忘记密码？</button>
+          </div>
+          <button class="btn btn--primary btn--full" type="submit">登录</button>
+        </form>
+
+        <form class="auth-form" id="signup-form" hidden novalidate>
+          <label class="field">
+            <span class="field-label">邮箱</span>
+            <input class="field-control" type="email" name="email" autocomplete="email" placeholder="name@example.com" required>
+          </label>
+          <label class="field">
+            <span class="field-label">设置密码</span>
+            <input class="field-control" type="password" name="password" autocomplete="new-password" minlength="8" placeholder="至少 8 位" required>
+          </label>
+          <label class="field">
+            <span class="field-label">确认密码</span>
+            <input class="field-control" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" placeholder="再次输入密码" required>
+          </label>
+          <button class="btn btn--primary btn--full" type="submit">注册</button>
+        </form>
+
+        <form class="auth-form" id="forgot-form" hidden novalidate>
+          <label class="field">
+            <span class="field-label">登录邮箱</span>
+            <input class="field-control" type="email" name="email" autocomplete="email" placeholder="name@example.com" required>
+            <span class="field-hint">我们会向该邮箱发送一次性密码重置链接。</span>
+          </label>
+          <button class="btn btn--primary btn--full" type="submit">发送重置邮件</button>
+          <div class="auth-secondary-action">
+            <button class="auth-link-button" type="button" data-return-login>返回登录</button>
+          </div>
+        </form>
+
+        <form class="auth-form" id="recovery-form" hidden novalidate>
+          <label class="field">
+            <span class="field-label">设置新密码</span>
+            <input class="field-control" type="password" name="password" autocomplete="new-password" minlength="8" placeholder="至少 8 位" required>
+          </label>
+          <label class="field">
+            <span class="field-label">确认新密码</span>
+            <input class="field-control" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" placeholder="再次输入新密码" required>
+          </label>
+          <button class="btn btn--primary btn--full" type="submit">保存新密码</button>
+        </form>
+        <p class="auth-meta">账号数据相互隔离，登录后仅可查看本人任务与报告。</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

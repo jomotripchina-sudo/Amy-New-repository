@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台在线查看关键词作战总表">
+  <meta name="theme-color" content="#ffffff">
+  <title>关键词作战报告｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-7">
+  <script defer src="../assets/vendor/supabase.js"></script>
+  <script defer src="../assets/js/config.js?v=20260827-2"></script>
+  <script defer src="../assets/js/core.js?v=20260827-3"></script>
+  <script defer src="../assets/js/app.js?v=20260827-2"></script>
+  <script defer src="../assets/js/report.js?v=20260827-4"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="app-brand" href="../tool/" aria-label="返回 AMZ 运营工作台关键词作战模块">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true">
+          <span class="logo-mark__text">YE</span>
+        </span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>关键词作战报告</span></span>
+      </a>
+      <div class="topbar__actions">
+        <span class="user-pill" id="user-email">正在核对登录状态…</span>
+        <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="page-heading report-heading">
+      <div>
+        <p class="eyebrow">AMZ OPERATIONS · KEYWORD REPORT</p>
+        <h1>关键词作战总表</h1>
+        <div class="report-meta" aria-label="任务信息">
+          <span class="meta-chip">ASIN <strong id="task-asin">—</strong></span>
+          <span class="meta-chip">任务 <strong id="task-id">—</strong></span>
+          <span class="meta-chip">提交 <strong id="task-created">—</strong></span>
+          <span class="status-badge status--pending" id="task-status">加载中</span>
+        </div>
+      </div>
+      <a class="btn btn--secondary" href="../tool/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+        返回工具页
+      </a>
+    </div>
+
+    <section class="card report-card" aria-label="关键词作战报告内容">
+      <div class="report-card__toolbar">
+        <span>宽表格可在区域内左右滚动</span>
+        <div class="strategy-legend" aria-label="打法建议配色说明">
+          <span class="strategy-badge strategy--action">加投/防守</span>
+          <span class="strategy-badge strategy--maintain">保持</span>
+          <span class="strategy-badge strategy--cautious">谨慎投放</span>
+          <span class="strategy-badge strategy--optimize">优化</span>
+          <span class="strategy-badge strategy--stop">停止投放/止损</span>
+        </div>
+      </div>
+      <div class="report-state" id="report-state" aria-live="polite">
+        <div class="report-state__inner">
+          <div class="spinner" id="report-spinner"></div>
+          <h2 id="report-state-title">正在加载作战报告</h2>
+          <p id="report-state-text">正在核对任务权限并获取最新报告，请稍候。</p>
+          <button class="btn btn--primary" id="retry-report" type="button" hidden>重新加载</button>
+        </div>
+      </div>
+      <iframe class="report-frame" id="report-frame" title="关键词作战总表" sandbox="" referrerpolicy="no-referrer" hidden></iframe>
+    </section>
+  </main>
+  <footer class="page-footer">AMZ 运营工作台 · 报告通过当前登录账号校验后在线加载</footer>
+</body>
+</html>

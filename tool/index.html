@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台关键词作战模块：提交 ASIN 和广告报表，查看分析任务">
+  <meta name="theme-color" content="#ffffff">
+  <title>关键词作战｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-7">
+  <script defer src="../assets/vendor/supabase.js"></script>
+  <script defer src="../assets/js/config.js?v=20260827-2"></script>
+  <script defer src="../assets/js/core.js?v=20260827-3"></script>
+  <script defer src="../assets/js/app.js?v=20260827-2"></script>
+  <script defer src="../assets/js/tool.js?v=20260827-3"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="app-brand" href="./" aria-label="AMZ 运营工作台关键词作战模块">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true">
+          <span class="logo-mark__text">YE</span>
+        </span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>关键词作战</span></span>
+      </a>
+      <div class="topbar__actions">
+        <span class="user-pill" id="user-email">正在核对登录状态…</span>
+        <button class="btn btn--ghost" type="button" data-sign-out>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9"></path></svg>
+          退出登录
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">AMZ OPERATIONS · KEYWORD MODULE</p>
+        <h1>关键词作战</h1>
+        <p>提交 ASIN 和广告报表，将关键词数据转化为清晰、可执行的运营任务。</p>
+      </div>
+    </div>
+
+    <section class="card submit-card" aria-labelledby="new-task-title">
+      <div class="submit-card__accent"></div>
+      <div class="card__header">
+        <div>
+          <h2 class="card__title" id="new-task-title">新建分析任务</h2>
+          <p class="card__subtitle">支持美国站 ASIN 和商品推广搜索词报表</p>
+        </div>
+      </div>
+      <form class="submit-form" id="task-form" novalidate>
+        <label class="field">
+          <span class="field-label">ASIN</span>
+          <input class="field-control" id="asin" name="asin" inputmode="text" maxlength="10" placeholder="例如 B09V366BDY" autocomplete="off" required>
+          <span class="field-hint">10 位字符，必须以 B0 开头</span>
+        </label>
+        <div class="field report-field">
+          <span class="field-label">广告报表</span>
+          <label class="file-drop">
+            <span class="file-drop__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0L8 8m4-4 4 4"></path><path d="M5 13v6h14v-6"></path></svg>
+            </span>
+            <span class="file-drop__text"><strong id="file-name">点击选择 .xlsx 或 .csv 文件</strong><span>单个文件最大 20 MB</span></span>
+            <input id="report-file" name="report_file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required>
+          </label>
+          <div class="report-period" aria-label="广告报表日期范围">
+            <label class="date-field">
+              <span>报告开始日期</span>
+              <input class="field-control field-control--date" id="report-start-date" name="report_start_date" type="date" required>
+            </label>
+            <label class="date-field">
+              <span>报告结束日期</span>
+              <input class="field-control field-control--date" id="report-end-date" name="report_end_date" type="date" required>
+            </label>
+          </div>
+        </div>
+        <div class="submit-action">
+          <button class="btn btn--primary" id="submit-task" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16m-8-8v16"></path></svg>
+            提交分析任务
+          </button>
+          <span class="field-hint">提交后可留在本页查看进度</span>
+        </div>
+      </form>
+      <div class="submit-feedback">
+        <div id="submit-feedback" class="message" hidden aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="card table-card" aria-labelledby="task-list-title">
+      <div class="card__header">
+        <div>
+          <h2 class="card__title" id="task-list-title">我的任务</h2>
+          <p class="card__subtitle" id="task-count">最近 0 条</p>
+        </div>
+        <div class="table-actions">
+          <span class="refresh-note">每 30 秒自动刷新</span>
+          <button class="btn btn--secondary" id="refresh-tasks" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"></path><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9m2 6a7 7 0 0 0 12 2.5L20 15"></path></svg>
+            刷新
+          </button>
+        </div>
+      </div>
+      <div class="table-loading" id="task-loading"><div class="spinner"></div>正在加载任务…</div>
+      <div class="table-empty" id="task-empty" hidden>
+        <span class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"></path></svg></span>
+        <p>还没有任务，提交第一份广告报表吧。</p>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="task-table" hidden>
+          <caption class="sr-only">当前账号最近提交的关键词分析任务</caption>
+          <colgroup><col style="width: 210px"><col style="width: 140px"><col style="width: 140px"><col style="width: 140px"><col style="width: 130px"><col style="width: 250px"><col style="width: 130px"></colgroup>
+          <thead><tr><th scope="col">提交时间 / 任务号</th><th scope="col">ASIN</th><th scope="col">报告开始日期</th><th scope="col">报告结束日期</th><th scope="col">状态</th><th scope="col">失败原因</th><th scope="col">操作</th></tr></thead>
+          <tbody id="task-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="page-footer">AMZ 运营工作台 · 关键词作战模块 · 登录数据仅对当前账号可见</footer>
+</body>
+</html>
