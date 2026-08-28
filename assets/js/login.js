@@ -89,10 +89,11 @@
     KeywordToolApp.setMessage(message, "info", "已验证登录状态。请选择一个空间后进入。");
   }
 
-  function recoveryRequestedByUrl() {
+  function credentialSetupRequestedByUrl() {
     const query = new URLSearchParams(window.location.search);
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    return query.get("mode") === "recovery" || hash.get("type") === "recovery";
+    const flowType = query.get("type") || hash.get("type");
+    return query.get("mode") === "recovery" || flowType === "recovery" || flowType === "invite";
   }
 
   function cleanRecoveryUrl(keepRecoveryMode) {
@@ -134,7 +135,7 @@
     }
   });
 
-  const urlRequestsRecovery = recoveryRequestedByUrl();
+  const urlRequestsCredentialSetup = credentialSetupRequestedByUrl();
   try {
     supabaseClient = KeywordToolApp.getClient();
     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -147,11 +148,12 @@
     });
     const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
-    if (urlRequestsRecovery) {
+    if (urlRequestsCredentialSetup) {
       recoverySessionReady = Boolean(data.session);
       showMode("recovery");
+      if (recoverySessionReady) cleanRecoveryUrl(true);
       if (!recoverySessionReady) {
-        KeywordToolApp.setMessage(message, "error", "重置链接无效或已过期，请返回登录页重新发送。");
+        KeywordToolApp.setMessage(message, "error", "密码设置链接无效或已过期，请返回登录页重新操作。");
         forms.recovery.querySelector("button[type='submit']").disabled = true;
       }
     } else if (data.session) {
