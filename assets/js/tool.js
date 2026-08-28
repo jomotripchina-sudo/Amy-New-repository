@@ -18,6 +18,7 @@
   const userEmail = document.querySelector("#user-email");
   const workspaceName = document.querySelector("#workspace-name");
   const workspaceDescription = document.querySelector("#workspace-description");
+  const approvalLink = document.querySelector("#approval-link");
 
   let session;
   let refreshTimer;
@@ -65,6 +66,15 @@
   workspaceDescription.textContent = `当前空间：${workspace.name}。数据入口：${sourceSummary}。此处仅显示该空间的任务、报表与数据来源。`;
   userEmail.textContent = session.user.email || "已登录";
   KeywordToolApp.bindSignOut("../");
+  try {
+    const profile = await KeywordToolApi.getAccessProfile(session);
+    if (profile.approval_admin) {
+      approvalLink.href = `../admin/?workspace=${encodeURIComponent(workspaceId)}`;
+      approvalLink.hidden = false;
+    }
+  } catch {
+    // 审批入口属于管理员附加能力，核验失败时保持隐藏，不影响普通任务流程。
+  }
 
   asinInput.addEventListener("input", () => {
     asinInput.value = KeywordToolCore.normalizeAsin(asinInput.value).slice(0, 10);

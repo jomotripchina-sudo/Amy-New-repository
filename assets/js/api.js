@@ -31,6 +31,14 @@
     return value;
   }
 
+  function assertAccessRequestId(requestId) {
+    const value = String(requestId || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+      throw new Error("访问申请编号无效，请刷新审批列表后重试。");
+    }
+    return value;
+  }
+
   async function readFileAsBase64(file) {
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -53,6 +61,24 @@
         ...(options.body ? { "Content-Type": "application/json" } : {})
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
+      credentials: "omit",
+      cache: "no-store",
+      redirect: "error"
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(payload?.error?.message || `API 请求失败：HTTP ${response.status}`);
+      error.code = payload?.error?.code || "API_REQUEST_FAILED";
+      throw error;
+    }
+    return payload;
+  }
+
+  async function publicRequest(path, body) {
+    const response = await fetch(`${apiBaseUrl()}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
       credentials: "omit",
       cache: "no-store",
       redirect: "error"
@@ -97,5 +123,39 @@
     return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/tasks/${encodeURIComponent(taskId)}`);
   }
 
-  return Object.freeze({ validateApiBaseUrl, assertWorkspaceId, listWorkspaces, listSources, createTask, listTasks, getTask });
+  async function submitAccessRequest(email, website = "") {
+    return publicRequest("/v1/access-requests", { email, website });
+  }
+
+  async function getAccessProfile(session) {
+    return request(session, "/v1/access-profile");
+  }
+
+  async function listAccessRequests(session) {
+    return request(session, "/v1/admin/access-requests");
+  }
+
+  async function approveAccessRequest(session, requestId) {
+    return request(session, `/v1/admin/access-requests/${encodeURIComponent(assertAccessRequestId(requestId))}/approve`, { method: "POST" });
+  }
+
+  async function rejectAccessRequest(session, requestId) {
+    return request(session, `/v1/admin/access-requests/${encodeURIComponent(assertAccessRequestId(requestId))}/reject`, { method: "POST" });
+  }
+
+  return Object.freeze({
+    validateApiBaseUrl,
+    assertWorkspaceId,
+    assertAccessRequestId,
+    submitAccessRequest,
+    getAccessProfile,
+    listAccessRequests,
+    approveAccessRequest,
+    rejectAccessRequest,
+    listWorkspaces,
+    listSources,
+    createTask,
+    listTasks,
+    getTask
+  });
 });

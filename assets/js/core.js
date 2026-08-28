@@ -70,6 +70,14 @@
     return { ok: true, message: "" };
   }
 
+  function validateAccessRequestEmail(value) {
+    const email = String(value || "").trim().toLowerCase();
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { ok: false, value: email, message: "请输入有效的申请邮箱。" };
+    }
+    return { ok: true, value: email, message: "" };
+  }
+
   function formatBytes(bytes) {
     const value = Number(bytes);
     if (!Number.isFinite(value) || value < 0) return "—";
@@ -166,6 +174,7 @@
     validateReportFile,
     validateReportPeriod,
     validatePasswordPair,
+    validateAccessRequestEmail,
     formatBytes,
     formatDateTime,
     statusClass,

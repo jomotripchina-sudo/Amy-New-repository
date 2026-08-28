@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台使用申请审批">
+  <meta name="theme-color" content="#ffffff">
+  <title>申请审批｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260828-1">
+  <script defer src="../assets/vendor/supabase.js"></script>
+  <script defer src="../assets/js/config.js?v=20260827-9"></script>
+  <script defer src="../assets/js/core.js?v=20260828-1"></script>
+  <script defer src="../assets/js/app.js?v=20260827-2"></script>
+  <script defer src="../assets/js/api.js?v=20260828-1"></script>
+  <script defer src="../assets/js/admin.js?v=20260828-1"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="app-brand" href="../" aria-label="返回 AMZ 运营工作台">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true"><span class="logo-mark__text">YE</span></span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>申请审批</span></span>
+      </a>
+      <div class="topbar__actions">
+        <a class="btn btn--ghost" id="back-to-tool" href="../">返回工具页</a>
+        <span class="user-pill" id="admin-email">正在核对管理员身份…</span>
+        <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">AMZ OPERATIONS · ACCESS CONTROL</p>
+        <h1>申请审批</h1>
+        <p>仅唯一管理员可查看申请；批准后系统会立即向申请邮箱发送 Supabase 邀请。</p>
+      </div>
+      <button class="btn btn--secondary" id="refresh-requests" type="button">刷新申请</button>
+    </div>
+
+    <div id="approval-message" class="message" hidden aria-live="polite"></div>
+
+    <section class="card table-card approval-card" aria-labelledby="approval-list-title">
+      <div class="card__header">
+        <div>
+          <h2 class="card__title" id="approval-list-title">使用申请</h2>
+          <p class="card__subtitle" id="approval-count">最近 0 条</p>
+        </div>
+        <span class="refresh-note">最多显示最近 100 条</span>
+      </div>
+      <div class="table-loading" id="approval-loading"><div class="spinner"></div>正在加载申请…</div>
+      <div class="table-empty" id="approval-empty" hidden>
+        <span class="empty-icon" aria-hidden="true">✓</span>
+        <p>当前没有使用申请。</p>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table approval-table" id="approval-table" hidden>
+          <caption class="sr-only">工作台使用申请审批列表</caption>
+          <colgroup><col style="width: 330px"><col style="width: 210px"><col style="width: 150px"><col style="width: 330px"></colgroup>
+          <thead><tr><th scope="col">申请邮箱</th><th scope="col">申请时间</th><th scope="col">状态</th><th scope="col">操作</th></tr></thead>
+          <tbody id="approval-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="page-footer">AMZ 运营工作台 · 申请记录仅服务器和唯一管理员可见</footer>
+</body>
+</html>

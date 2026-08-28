@@ -11,7 +11,7 @@
   const changeAccountButton = document.querySelector("#change-account");
   const forms = {
     login: document.querySelector("#login-form"),
-    signup: document.querySelector("#signup-form"),
+    apply: document.querySelector("#apply-form"),
     forgot: document.querySelector("#forgot-form"),
     recovery: document.querySelector("#recovery-form")
   };
@@ -23,7 +23,7 @@
 
   const modeCopy = {
     login: ["登录 AMZ 运营工作台", "选择空间后，使用工作台账号直接进入对应的运营工具。"],
-    signup: ["创建工作台账号", "注册后，系统会为该账号准备测试、个人和公司三个独立空间。"],
+    apply: ["申请使用 AMZ 运营工作台", "提交申请后不会立即创建账号；管理员批准后，我们会向申请邮箱发送邀请。"],
     forgot: ["找回工作台密码", "输入登录邮箱，我们会发送密码重置链接。"],
     recovery: ["设置工作台新密码", "请输入新的登录密码，保存后重新登录。"]
   };
@@ -35,10 +35,10 @@
 
   function showMode(mode, options = {}) {
     if (!forms[mode]) return;
-    const usesLoginOrSignup = mode === "login" || mode === "signup";
+    const usesAuthTabs = mode === "login" || mode === "apply";
     Object.entries(forms).forEach(([name, form]) => { form.hidden = name !== mode || Boolean(activeSession); });
-    tabsContainer.hidden = !usesLoginOrSignup || Boolean(activeSession);
-    workspacePicker.hidden = !usesLoginOrSignup;
+    tabsContainer.hidden = !usesAuthTabs || Boolean(activeSession);
+    workspacePicker.hidden = mode !== "login" && !activeSession;
     authenticatedEntry.hidden = !activeSession;
     title.textContent = activeSession ? "已登录 AMZ 运营工作台" : modeCopy[mode][0];
     intro.textContent = activeSession ? "请选择一个空间，直接进入对应的运营工具。" : modeCopy[mode][1];
@@ -103,7 +103,7 @@
 
   workspaceOptions.forEach((option) => option.addEventListener("click", () => {
     setWorkspaceSelection(option.dataset.workspaceKey);
-    KeywordToolApp.setMessage(message, "info", activeSession ? "空间已选定，点击进入已选空间。" : "空间已选定，请继续登录或注册。");
+    KeywordToolApp.setMessage(message, "info", activeSession ? "空间已选定，点击进入已选空间。" : "空间已选定，请继续登录。");
   }));
   tabs.forEach((tab) => tab.addEventListener("click", () => showMode(tab.dataset.authTab)));
   forgotButton.addEventListener("click", () => {
@@ -187,40 +187,28 @@
     }
   });
 
-  forms.signup.addEventListener("submit", async (event) => {
+  forms.apply.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!requireWorkspaceSelection()) return;
-    const button = forms.signup.querySelector("button[type='submit']");
-    const email = forms.signup.elements.email.value.trim();
-    const password = forms.signup.elements.password.value;
-    const confirmation = forms.signup.elements.password_confirmation.value;
-    const passwordResult = KeywordToolCore.validatePasswordPair(password, confirmation);
-    if (!passwordResult.ok) {
-      KeywordToolApp.setMessage(message, "error", passwordResult.message);
+    const button = forms.apply.querySelector("button[type='submit']");
+    const emailResult = KeywordToolCore.validateAccessRequestEmail(forms.apply.elements.email.value);
+    if (!emailResult.ok) {
+      forms.apply.elements.email.setCustomValidity(emailResult.message);
+      forms.apply.elements.email.reportValidity();
+      KeywordToolApp.setMessage(message, "error", emailResult.message);
       return;
     }
     button.disabled = true;
-    button.textContent = "正在创建账号…";
+    button.textContent = "正在提交申请…";
     KeywordToolApp.setMessage(message, "info", "");
     try {
-      const emailRedirectTo = new URL("./", window.location.href).href;
-      const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo }
-      });
-      if (error) throw error;
-      if (data.session) {
-        await openSelectedWorkspace(data.session);
-        return;
-      }
-      forms.signup.reset();
-      KeywordToolApp.setMessage(message, "success", "注册成功。请查看邮箱里的验证邮件；完成验证后回到本页选择空间并登录。");
+      const result = await KeywordToolApi.submitAccessRequest(emailResult.value, forms.apply.elements.website.value);
+      forms.apply.reset();
+      KeywordToolApp.setMessage(message, "success", result.message || "申请已提交。管理员批准后，邀请邮件会发送到申请邮箱。");
     } catch (error) {
-      KeywordToolApp.setMessage(message, "error", KeywordToolCore.friendlyAuthError(error, "signup"));
+      KeywordToolApp.setMessage(message, "error", KeywordToolCore.friendlyDataError(error, error.message || "申请暂时无法提交，请稍后重试。"));
     } finally {
       button.disabled = false;
-      button.textContent = "注册";
+      button.textContent = "提交使用申请";
     }
   });
 
