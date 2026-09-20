@@ -5,62 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="AMZ 运营工作台在线查看关键词作战总表">
   <meta name="theme-color" content="#ffffff">
-  <title>关键词作战报告｜AMZ 运营工作台</title>
-  <link rel="stylesheet" href="../assets/css/app.css?v=20260827-9">
+  <title>Listing增长诊断｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260902-10">
+  <link rel="stylesheet" href="../assets/css/tool-shell.css?v=20260915-1">
   <script defer src="../assets/vendor/supabase.js"></script>
   <script defer src="../assets/js/config.js?v=20260827-9"></script>
   <script defer src="../assets/js/core.js?v=20260827-4"></script>
   <script defer src="../assets/js/app.js?v=20260827-2"></script>
   <script defer src="../assets/js/api.js?v=20260827-3"></script>
-  <script defer src="../assets/js/report.js?v=20260827-7"></script>
+  <script defer src="../assets/js/tool-shell.js?v=20260915-1"></script>
+  <script defer src="../assets/js/report.js?v=20260920-1"></script>
 </head>
-<body>
+<body class="report-page">
   <header class="topbar">
     <div class="topbar__inner">
-      <a class="app-brand" href="../tool/" aria-label="返回 AMZ 运营工作台关键词作战模块">
+      <a class="app-brand" id="app-brand-link" href="../tool/" aria-label="返回 AMZ 运营工作台关键词作战模块">
         <span class="logo-mark logo-mark--solid" aria-hidden="true">
           <span class="logo-mark__text">YE</span>
         </span>
-        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>关键词作战报告</span></span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>Listing增长诊断</span></span>
       </a>
       <div class="topbar__actions">
         <a class="btn btn--ghost" href="../">切换空间</a>
+        <a class="btn btn--ghost" id="return-tool" href="../tool/">返回工具页</a>
         <span class="user-pill" id="workspace-name">正在核对业务空间…</span>
         <span class="user-pill" id="user-email">正在核对登录状态…</span>
         <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
       </div>
     </div>
   </header>
+  <aside class="tool-sidebar" aria-label="工具导航">
+    <div class="tool-sidebar__kicker">工具架构</div>
+    <nav class="tool-sidebar__nav">
+      <a class="tool-nav-link is-active" data-workspace-link href="../tool/"><span class="tool-nav-link__index">01</span><span class="tool-nav-link__copy"><strong>关键词作战</strong><small>Listing 与广告诊断</small></span></a>
+      <a class="tool-nav-link" data-workspace-link href="../voc/"><span class="tool-nav-link__index">02</span><span class="tool-nav-link__copy"><strong>用户洞察</strong><small>VOC 评论洞察</small></span></a>
+    </nav>
+    <p class="tool-sidebar__note">后续工具继续按独立目录、任务表和进程接入，互不搅动。</p>
+  </aside>
 
-  <main class="page-main">
-    <div class="page-heading report-heading">
+  <main class="page-main report-page-main">
+    <section class="ad-data-update-card" aria-labelledby="ad-data-update-title">
       <div>
-        <p class="eyebrow">AMZ OPERATIONS · KEYWORD REPORT</p>
-        <h1>关键词作战总表</h1>
-        <div class="report-meta" aria-label="任务信息">
-          <span class="meta-chip">ASIN <strong id="task-asin">—</strong></span>
-          <span class="meta-chip">任务 <strong id="task-id">—</strong></span>
-          <span class="meta-chip">提交 <strong id="task-created">—</strong></span>
-          <span class="status-badge status--pending" id="task-status">加载中</span>
-        </div>
+        <p class="eyebrow">模块 06 · 只读建议闭环</p>
+        <h1 id="ad-data-update-title">更新广告数据</h1>
+        <p>上传同口径 JSON 快照。系统按 ASIN 自动隔离，只根据实际 Bid／状态识别执行；不提供“确认执行动作”步骤，也不会写入 Amazon Ads。</p>
       </div>
-      <a class="btn btn--secondary" id="return-tool" href="../">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
-        返回工具页
-      </a>
-    </div>
-
-    <section class="card report-card" aria-label="关键词作战报告内容">
-      <div class="report-card__toolbar">
-        <span>宽表格可在区域内左右滚动</span>
-        <div class="strategy-legend" aria-label="打法建议配色说明">
-          <span class="strategy-badge strategy--action">加投/防守</span>
-          <span class="strategy-badge strategy--maintain">保持</span>
-          <span class="strategy-badge strategy--cautious">谨慎投放</span>
-          <span class="strategy-badge strategy--optimize">优化</span>
-          <span class="strategy-badge strategy--stop">停止投放/止损</span>
-        </div>
-      </div>
+      <form id="ad-data-update-form" class="ad-data-update-form">
+        <label for="ad-data-file">广告数据 JSON</label>
+        <input id="ad-data-file" type="file" accept="application/json,.json" required>
+        <button class="btn btn--primary" id="ad-data-submit" type="submit">更新并重算模块 06</button>
+        <p class="form-help">调整被观察到后严格观察 7 天；不足 7 天只显示观察中与剩余天数。</p>
+        <p class="message" id="ad-data-feedback" hidden aria-live="polite"></p>
+      </form>
+      <details class="ad-data-template">
+        <summary>查看字段模板</summary>
+        <pre>{
+  "sourceSnapshotId": "2026-09-14T00:00:00Z-export-001",
+  "snapshotAsOf": "2026-09-14T00:00:00.000Z",
+  "marketplace": "US", "timezone": "America/Los_Angeles", "currency": "USD",
+  "metricDefinitionId": "sp-exact-7d-v1",
+  "rows": [{ "advertisedAsin": "B000000001", "asinScopeStatus": "VERIFIED", "asinScopeProof": "advertised product ASIN", "keywordId": "...", "keyword": "...", "matchType": "EXACT", "campaignId": "...", "adGroupId": "...", "syncStatus": "OK", "advertisingStatus": "ACTIVE_EXACT", "hasEverAdvertised": true, "identityEvidence": "VERIFIED_ACCOUNT", "currentBid": 0.85, "windowStart": "...", "windowEnd": "...", "clicks7d": 0, "adOrders7d": 0, "listingCvr7d": 0.1, "acos7d": 0.3, "targetAcos": 0.3, "spend7d": 0, "totalOrders7d": 0, "naturalOrders7d": 0, "naturalRankStatus": "NOT_RANKED" }]
+}</pre>
+      </details>
+    </section>
+    <section class="report-card" aria-label="Listing增长诊断报告内容">
       <div class="report-state" id="report-state" aria-live="polite">
         <div class="report-state__inner">
           <div class="spinner" id="report-spinner"></div>
@@ -69,9 +77,9 @@
           <button class="btn btn--primary" id="retry-report" type="button" hidden>重新加载</button>
         </div>
       </div>
-      <iframe class="report-frame" id="report-frame" title="关键词作战总表" sandbox="" referrerpolicy="no-referrer" hidden></iframe>
+      <iframe class="report-frame" id="report-frame" title="Listing增长诊断" sandbox="allow-scripts" referrerpolicy="no-referrer" hidden></iframe>
     </section>
   </main>
-  <footer class="page-footer">AMZ 运营工作台 · 报告通过当前业务空间校验后在线加载</footer>
+  <footer class="page-footer"><span>AMZ 运营工作台 · 报告通过当前业务空间校验后在线加载</span><span aria-hidden="true"> · </span><a class="page-footer__filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026126692号-1</a></footer>
 </body>
 </html>

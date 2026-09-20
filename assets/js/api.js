@@ -39,6 +39,14 @@
     return value;
   }
 
+  function assertTaskId(taskId) {
+    const value = String(taskId || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value)) {
+      throw new Error("任务地址无效，请返回工具页重新打开报告。");
+    }
+    return value;
+  }
+
   async function readFileAsBase64(file) {
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -100,11 +108,13 @@
     return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/sources`);
   }
 
-  async function createTask(session, workspaceId, { asin, reportStartDate, reportEndDate, file }) {
+  async function createTask(session, workspaceId, { asin, competitorAsins = [], coreKeyword = "", reportStartDate, reportEndDate, file }) {
     return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/tasks`, {
       method: "POST",
       body: {
         asin,
+        competitorAsins,
+        coreKeyword,
         reportStartDate,
         reportEndDate,
         file: {
@@ -121,6 +131,33 @@
 
   async function getTask(session, workspaceId, taskId) {
     return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/tasks/${encodeURIComponent(taskId)}`);
+  }
+
+  async function updateAdvertisingData(session, workspaceId, taskId, payload) {
+    return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/tasks/${encodeURIComponent(assertTaskId(taskId))}/advertising-data`, {
+      method: "POST",
+      body: payload
+    });
+  }
+
+  async function previewVocProducts(session, workspaceId, payload) {
+    return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/voc/product-preview`, {
+      method: "POST",
+      body: payload
+    });
+  }
+
+  async function createVocTask(session, workspaceId, payload) {
+    return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/voc/tasks`, {
+      method: "POST",
+      body: payload
+    });
+  }
+
+  async function deleteVocTask(session, workspaceId, taskId) {
+    return request(session, `/v1/workspaces/${encodeURIComponent(assertWorkspaceId(workspaceId))}/voc/tasks/${encodeURIComponent(assertTaskId(taskId))}`, {
+      method: "DELETE"
+    });
   }
 
   async function submitAccessRequest(email, website = "") {
@@ -147,6 +184,7 @@
     validateApiBaseUrl,
     assertWorkspaceId,
     assertAccessRequestId,
+    assertTaskId,
     submitAccessRequest,
     getAccessProfile,
     listAccessRequests,
@@ -156,6 +194,10 @@
     listSources,
     createTask,
     listTasks,
-    getTask
+    getTask,
+    updateAdvertisingData,
+    previewVocProducts,
+    createVocTask,
+    deleteVocTask
   });
 });

@@ -3,6 +3,11 @@
 
   const form = document.querySelector("#task-form");
   const asinInput = document.querySelector("#asin");
+  const competitorInput = document.querySelector("#competitor-asins");
+  const asinRows = document.querySelector("#asin-rows");
+  const addCompetitorButton = document.querySelector("#add-competitor");
+  const competitorCount = document.querySelector("#competitor-count");
+  const coreKeywordInput = document.querySelector("#core-keyword");
   const fileInput = document.querySelector("#report-file");
   const fileName = document.querySelector("#file-name");
   const reportStartInput = document.querySelector("#report-start-date");
@@ -19,6 +24,7 @@
   const workspaceName = document.querySelector("#workspace-name");
   const workspaceDescription = document.querySelector("#workspace-description");
   const approvalLink = document.querySelector("#approval-link");
+  const vocToolLink = document.querySelector("#voc-tool-link");
 
   let session;
   let refreshTimer;
@@ -29,7 +35,7 @@
     if (!session) return;
   } catch (error) {
     KeywordToolApp.setMessage(feedback, "error", error.message);
-    form.querySelectorAll("input, button").forEach((control) => { control.disabled = true; });
+    form.querySelectorAll("input, textarea, button").forEach((control) => { control.disabled = true; });
     return;
   }
 
@@ -39,6 +45,7 @@
     window.location.replace("../");
     return;
   }
+  vocToolLink.href = `../voc/?workspace=${encodeURIComponent(workspaceId)}`;
   let workspace;
   try {
     const { workspaces } = await KeywordToolApi.listWorkspaces(session);
@@ -49,7 +56,7 @@
     }
   } catch (error) {
     KeywordToolApp.setMessage(feedback, "error", KeywordToolCore.friendlyDataError(error, "业务空间暂时无法核验，请返回登录页重试。"));
-    form.querySelectorAll("input, button").forEach((control) => { control.disabled = true; });
+    form.querySelectorAll("input, textarea, button").forEach((control) => { control.disabled = true; });
     return;
   }
   workspaceName.textContent = `空间 · ${workspace.name}`;
@@ -79,6 +86,74 @@
   asinInput.addEventListener("input", () => {
     asinInput.value = KeywordToolCore.normalizeAsin(asinInput.value).slice(0, 10);
     asinInput.setCustomValidity("");
+    competitorControls().forEach((control) => control.setCustomValidity(""));
+  });
+
+  const competitorControls = () => [...asinRows.querySelectorAll('[data-asin-role="competitor"] .asin-row__input')];
+  const competitorValues = () => competitorControls().map((control) => control.value);
+  const renumberCompetitors = () => {
+    [...asinRows.querySelectorAll('[data-asin-role="competitor"]')].forEach((row, index) => {
+      row.querySelector(".asin-role").textContent = "竞对 " + (index + 1);
+      row.querySelector(".asin-row__input").setAttribute("aria-label", "竞对 " + (index + 1) + " ASIN");
+    });
+  };
+
+  const updateCompetitorCount = () => {
+    competitorControls().forEach((control) => {
+      control.value = KeywordToolCore.normalizeAsin(control.value).slice(0, 10);
+      control.setCustomValidity("");
+    });
+    const result = KeywordToolCore.validateCompetitorAsins(competitorValues(), asinInput.value, { minimum: 3 });
+    competitorInput.value = result.values.join("\n");
+    competitorCount.textContent = result.count + " / 5 家竞对";
+    competitorCount.classList.toggle("is-invalid", result.count > 5);
+    addCompetitorButton.disabled = competitorControls().length >= 5;
+  };
+
+  const addCompetitorRow = (value = "") => {
+    if (competitorControls().length >= 5) return;
+    const row = document.createElement("div");
+    row.className = "asin-row";
+    row.dataset.asinRole = "competitor";
+    const role = document.createElement("span");
+    role.className = "asin-role";
+    const input = document.createElement("input");
+    input.className = "field-control asin-row__input";
+    input.inputMode = "text";
+    input.maxLength = 10;
+    input.placeholder = "输入竞对 ASIN";
+    input.autocomplete = "off";
+    input.value = value;
+    const remove = document.createElement("button");
+    remove.className = "asin-remove";
+    remove.type = "button";
+    remove.textContent = "移除";
+    remove.setAttribute("aria-label", "移除这家竞对");
+    input.addEventListener("input", updateCompetitorCount);
+    remove.addEventListener("click", () => {
+      row.remove();
+      renumberCompetitors();
+      updateCompetitorCount();
+    });
+    row.append(role, input, remove);
+    asinRows.append(row);
+    renumberCompetitors();
+    updateCompetitorCount();
+  };
+
+  const resetCompetitorRows = () => {
+    asinRows.querySelectorAll('[data-asin-role="competitor"]').forEach((row) => row.remove());
+    for (let index = 0; index < 3; index += 1) addCompetitorRow();
+    updateCompetitorCount();
+  };
+
+  addCompetitorButton.addEventListener("click", () => {
+    addCompetitorRow();
+    competitorControls().at(-1)?.focus();
+  });
+
+  coreKeywordInput.addEventListener("input", () => {
+    coreKeywordInput.setCustomValidity("");
   });
 
   fileInput.addEventListener("change", () => {
@@ -98,6 +173,8 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const asinResult = KeywordToolCore.validateAsin(asinInput.value);
+    const competitorResult = KeywordToolCore.validateCompetitorAsins(competitorValues(), asinResult.value, { minimum: 3 });
+    const coreKeywordResult = KeywordToolCore.validateCoreKeyword(coreKeywordInput.value);
     const file = fileInput.files && fileInput.files[0];
     const fileResult = KeywordToolCore.validateReportFile(file, config.maxUploadBytes);
     const dateResult = KeywordToolCore.validateReportPeriod(reportStartInput.value, reportEndInput.value);
@@ -105,6 +182,20 @@
       asinInput.setCustomValidity(asinResult.message);
       asinInput.reportValidity();
       KeywordToolApp.setMessage(feedback, "error", asinResult.message);
+      return;
+    }
+    if (!competitorResult.ok) {
+      const competitorControl = competitorControls().find((control) => control.value.trim()) || competitorControls()[0];
+      competitorControl.setCustomValidity(competitorResult.message);
+      competitorControl.reportValidity();
+      competitorCount.classList.add("is-invalid");
+      KeywordToolApp.setMessage(feedback, "error", competitorResult.message);
+      return;
+    }
+    if (!coreKeywordResult.ok) {
+      coreKeywordInput.setCustomValidity(coreKeywordResult.message);
+      coreKeywordInput.reportValidity();
+      KeywordToolApp.setMessage(feedback, "error", coreKeywordResult.message);
       return;
     }
     if (!fileResult.ok) {
@@ -125,12 +216,15 @@
     try {
       await KeywordToolApi.createTask(session, workspaceId, {
         asin: asinResult.value,
+        competitorAsins: competitorResult.values,
+        coreKeyword: coreKeywordResult.value,
         reportStartDate: dateResult.startDate,
         reportEndDate: dateResult.endDate,
         file
       });
 
       form.reset();
+      resetCompetitorRows();
       fileName.textContent = "点击选择 .xlsx 或 .csv 文件";
       KeywordToolApp.setMessage(feedback, "success", "任务提交成功。后台会自动处理，你可以留在本页查看进度。" );
       await refreshTasks();
@@ -166,6 +260,7 @@
       timeCell.append(time, id);
       row.append(timeCell);
       row.append(createCell(task.asin, "asin-value"));
+      row.append(createCell(task.core_keyword || "自动选择", "core-keyword-value"));
       row.append(createCell(task.report_start_date || "—", "report-date-value"));
       row.append(createCell(task.report_end_date || "—", "report-date-value"));
 
@@ -238,6 +333,7 @@
     if (document.visibilityState === "visible") refreshTasks();
   });
 
+  resetCompetitorRows();
   await refreshTasks();
   scheduleRefresh();
 })();

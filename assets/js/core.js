@@ -23,6 +23,45 @@
     return { ok: true, value: normalized, message: "" };
   }
 
+  function validateCompetitorAsins(value, targetAsin, options = {}) {
+    const tokens = (Array.isArray(value) ? value : String(value || "").split(/[\s,，;；]+/))
+      .map(normalizeAsin)
+      .filter(Boolean);
+    const values = [];
+    const seen = new Set();
+    const normalizedTarget = normalizeAsin(targetAsin);
+    for (const asin of tokens) {
+      if (!ASIN_PATTERN.test(asin)) {
+        return { ok: false, values, count: values.length, message: `竞品 ASIN ${asin} 格式不正确。` };
+      }
+      if (asin === normalizedTarget) {
+        return { ok: false, values, count: values.length, message: "指定竞品不能与自己的 ASIN 相同。" };
+      }
+      if (seen.has(asin)) continue;
+      seen.add(asin);
+      values.push(asin);
+      if (values.length > 5) {
+        return { ok: false, values, count: values.length, message: "指定竞品最多 5 个。" };
+      }
+    }
+    const minimum = Number.isInteger(options.minimum) ? Math.max(0, Math.min(5, options.minimum)) : 0;
+    if (values.length < minimum) {
+      return { ok: false, values, count: values.length, message: `请填写 ${minimum}–5 家竞对 ASIN。` };
+    }
+    return { ok: true, values, count: values.length, message: "" };
+  }
+
+  function validateCoreKeyword(value) {
+    const normalized = String(value || "").trim().replace(/\s+/g, " ");
+    if (normalized.length > 120) {
+      return { ok: false, value: normalized, message: "核心关键词不能超过 120 个字符。" };
+    }
+    if (/[\u0000-\u001f\u007f]/.test(normalized)) {
+      return { ok: false, value: normalized, message: "核心关键词包含不支持的控制字符。" };
+    }
+    return { ok: true, value: normalized, message: "" };
+  }
+
   function fileExtension(filename) {
     const match = String(filename || "").toLowerCase().match(/\.([a-z0-9]+)$/);
     return match ? match[1] : "";
@@ -150,12 +189,17 @@
     return UUID_PATTERN.test(String(value || ""));
   }
 
-  function isAllowedReportUrl(value, hostSuffix) {
+  function isAllowedReportUrl(value, allowedHosts) {
     try {
       const url = new URL(value);
-      const suffix = String(hostSuffix || "").toLowerCase();
       const hostname = url.hostname.toLowerCase();
-      return url.protocol === "https:" && Boolean(suffix) && hostname.endsWith(suffix) && hostname !== suffix.slice(1);
+      const hosts = Array.isArray(allowedHosts) ? allowedHosts : [allowedHosts];
+      return url.protocol === "https:" && hosts.some((entry) => {
+        const host = String(entry || "").trim().toLowerCase();
+        if (!host) return false;
+        if (host.startsWith(".")) return hostname.endsWith(host) && hostname !== host.slice(1);
+        return hostname === host;
+      });
     } catch {
       return false;
     }
@@ -170,6 +214,8 @@
   return Object.freeze({
     normalizeAsin,
     validateAsin,
+    validateCompetitorAsins,
+    validateCoreKeyword,
     fileExtension,
     validateReportFile,
     validateReportPeriod,

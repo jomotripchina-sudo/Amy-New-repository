@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台用户洞察报告中转页">
+  <meta name="theme-color" content="#ffffff">
+  <title>用户洞察报告｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../../assets/css/app.css?v=20260915-1">
+  <link rel="stylesheet" href="../../assets/css/tool-shell.css?v=20260915-1">
+  <link rel="stylesheet" href="../assets/voc.css?v=20260918-1">
+  <script defer src="../../assets/vendor/supabase.js"></script>
+  <script defer src="../../assets/js/config.js?v=20260827-9"></script>
+  <script defer src="../../assets/js/core.js?v=20260909-1"></script>
+  <script defer src="../../assets/js/app.js?v=20260827-2"></script>
+  <script defer src="../../assets/js/api.js?v=20260918-1"></script>
+  <script defer src="../../assets/js/tool-shell.js?v=20260915-1"></script>
+  <script defer src="../assets/voc-core.js?v=20260918-1"></script>
+  <script defer src="../assets/voc-report.js?v=20260918-1"></script>
+</head>
+<body class="voc-page report-page">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="app-brand" id="voc-report-brand" href="../" aria-label="返回用户洞察工具">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true"><span class="logo-mark__text">YE</span></span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>用户洞察报告</span></span>
+      </a>
+      <div class="topbar__actions">
+        <a class="btn btn--ghost" id="return-voc" href="../">返回任务页</a>
+        <a class="btn btn--ghost" href="../../">切换空间</a>
+        <span class="user-pill" id="workspace-name">正在核对业务空间…</span>
+        <span class="user-pill" id="user-email">正在核对登录状态…</span>
+        <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
+      </div>
+    </div>
+  </header>
+  <aside class="tool-sidebar" aria-label="工具导航">
+    <div class="tool-sidebar__kicker">工具架构</div>
+    <nav class="tool-sidebar__nav">
+      <a class="tool-nav-link" data-workspace-link href="../../tool/"><span class="tool-nav-link__index">01</span><span class="tool-nav-link__copy"><strong>关键词作战</strong><small>Listing 与广告诊断</small></span></a>
+      <a class="tool-nav-link is-active" data-workspace-link href="../"><span class="tool-nav-link__index">02</span><span class="tool-nav-link__copy"><strong>用户洞察</strong><small>VOC 评论洞察</small></span></a>
+    </nav>
+    <p class="tool-sidebar__note">后续工具继续按独立目录、任务表和进程接入，互不搅动。</p>
+  </aside>
+  <main class="page-main voc-report-main">
+    <section class="card voc-report-shell" aria-live="polite">
+      <div class="voc-report-state" id="voc-report-state">
+        <div class="voc-report-state__inner">
+          <div class="spinner" id="voc-report-spinner"></div>
+          <h1 id="voc-report-title">正在加载用户洞察报告</h1>
+          <p id="voc-report-text">正在核对任务和业务空间，请稍候。</p>
+          <button class="btn btn--primary" id="voc-report-retry" type="button" hidden>重新加载</button>
+          <div class="voc-report-meta" id="voc-report-meta" hidden></div>
+        </div>
+      </div>
+      <iframe class="voc-report-frame" id="voc-report-frame" title="用户洞察报告" sandbox="allow-scripts" referrerpolicy="no-referrer" hidden></iframe>
+    </section>
+  </main>
+  <footer class="page-footer"><span>AMZ 运营工作台 · 用户洞察报告中转页</span><span aria-hidden="true"> · </span><a class="page-footer__filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026126692号-1</a></footer>
+</body>
+</html>

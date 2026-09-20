@@ -6,15 +6,17 @@
   <meta name="description" content="AMZ 运营工作台关键词作战模块：提交 ASIN 和广告报表，查看分析任务">
   <meta name="theme-color" content="#ffffff">
   <title>关键词作战｜AMZ 运营工作台</title>
-  <link rel="stylesheet" href="../assets/css/app.css?v=20260828-1">
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260909-1">
+  <link rel="stylesheet" href="../assets/css/tool-shell.css?v=20260915-1">
   <script defer src="../assets/vendor/supabase.js"></script>
   <script defer src="../assets/js/config.js?v=20260827-9"></script>
-  <script defer src="../assets/js/core.js?v=20260827-4"></script>
+  <script defer src="../assets/js/core.js?v=20260909-1"></script>
   <script defer src="../assets/js/app.js?v=20260827-2"></script>
-  <script defer src="../assets/js/api.js?v=20260827-3"></script>
-  <script defer src="../assets/js/tool.js?v=20260827-6"></script>
+  <script defer src="../assets/js/api.js?v=20260909-1"></script>
+  <script defer src="../assets/js/tool-shell.js?v=20260915-1"></script>
+  <script defer src="../assets/js/tool.js?v=20260909-1"></script>
 </head>
-<body>
+<body class="tool-page">
   <header class="topbar">
     <div class="topbar__inner">
       <a class="app-brand" href="./" aria-label="AMZ 运营工作台关键词作战模块">
@@ -35,6 +37,14 @@
       </div>
     </div>
   </header>
+  <aside class="tool-sidebar" aria-label="工具导航">
+    <div class="tool-sidebar__kicker">工具架构</div>
+    <nav class="tool-sidebar__nav">
+      <a class="tool-nav-link is-active" id="keyword-tool-link" data-workspace-link href="./"><span class="tool-nav-link__index">01</span><span class="tool-nav-link__copy"><strong>关键词作战</strong><small>Listing 与广告诊断</small></span></a>
+      <a class="tool-nav-link" id="voc-tool-link" data-workspace-link href="../voc/"><span class="tool-nav-link__index">02</span><span class="tool-nav-link__copy"><strong>用户洞察</strong><small>VOC 评论洞察</small></span></a>
+    </nav>
+    <p class="tool-sidebar__note">后续工具继续按独立目录、任务表和进程接入，互不搅动。</p>
+  </aside>
 
   <main class="page-main">
     <div class="page-heading">
@@ -54,11 +64,30 @@
         </div>
       </div>
       <form class="submit-form" id="task-form" novalidate>
-        <label class="field">
-          <span class="field-label">ASIN</span>
-          <input class="field-control" id="asin" name="asin" inputmode="text" maxlength="10" placeholder="例如 B09V366BDY" autocomplete="off" required>
-          <span class="field-hint">10 位字符，必须以 B0 开头</span>
-        </label>
+        <div class="product-inputs">
+          <div class="asin-builder" aria-labelledby="asin-builder-title">
+            <div class="field-label-row">
+              <span class="field-label" id="asin-builder-title">对比商品 ASIN</span>
+              <span class="competitor-count" id="competitor-count">0 / 5 家竞对</span>
+            </div>
+            <div class="asin-rows" id="asin-rows">
+              <div class="asin-row asin-row--own" data-asin-role="own">
+                <span class="asin-role asin-role--own">自己</span>
+                <label class="sr-only" for="asin">自己的 ASIN</label>
+                <input class="field-control asin-row__input" id="asin" name="asin" inputmode="text" maxlength="10" placeholder="例如 B09V366BDY" autocomplete="off" required>
+                <span class="asin-row__fixed">固定首行</span>
+              </div>
+            </div>
+            <input id="competitor-asins" name="competitor_asins" type="hidden" value="">
+            <button class="asin-add" id="add-competitor" type="button">＋ 添加竞对 ASIN</button>
+            <span class="field-hint" id="competitor-hint">每行一个 ASIN，最多 5 家；最终名单完全按你的输入顺序。</span>
+          </div>
+          <label class="field">
+            <span class="field-label">核心关键词（选填）</span>
+            <input class="field-control" id="core-keyword" name="core_keyword" maxlength="120" placeholder="例如 led strip lights" autocomplete="off">
+            <span class="field-hint">留空时使用模块 02 总表中总流量最高的关键词。</span>
+          </label>
+        </div>
         <div class="field report-field">
           <span class="field-label">广告报表</span>
           <label class="file-drop">
@@ -114,13 +143,13 @@
       <div class="table-scroll">
         <table class="data-table" id="task-table" hidden>
           <caption class="sr-only">当前业务空间最近提交的关键词分析任务</caption>
-          <colgroup><col style="width: 210px"><col style="width: 140px"><col style="width: 140px"><col style="width: 140px"><col style="width: 130px"><col style="width: 250px"><col style="width: 130px"></colgroup>
-          <thead><tr><th scope="col">提交时间 / 任务号</th><th scope="col">ASIN</th><th scope="col">报告开始日期</th><th scope="col">报告结束日期</th><th scope="col">状态</th><th scope="col">失败原因</th><th scope="col">操作</th></tr></thead>
+          <colgroup><col style="width: 210px"><col style="width: 140px"><col style="width: 170px"><col style="width: 140px"><col style="width: 140px"><col style="width: 130px"><col style="width: 250px"><col style="width: 130px"></colgroup>
+          <thead><tr><th scope="col">提交时间 / 任务号</th><th scope="col">自己的 ASIN</th><th scope="col">核心关键词</th><th scope="col">报告开始日期</th><th scope="col">报告结束日期</th><th scope="col">状态</th><th scope="col">失败原因</th><th scope="col">操作</th></tr></thead>
           <tbody id="task-body"></tbody>
         </table>
       </div>
     </section>
   </main>
-  <footer class="page-footer">AMZ 运营工作台 · 关键词作战模块 · 数据仅在当前业务空间内可见</footer>
+  <footer class="page-footer"><span>AMZ 运营工作台 · 关键词作战模块 · 数据仅在当前业务空间内可见</span><span aria-hidden="true"> · </span><a class="page-footer__filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026126692号-1</a></footer>
 </body>
 </html>

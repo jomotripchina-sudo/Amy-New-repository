@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AMZ 运营工作台用户洞察工具：提交 ASIN 并查看 VOC 分析任务">
+  <meta name="theme-color" content="#ffffff">
+  <title>用户洞察｜AMZ 运营工作台</title>
+  <link rel="stylesheet" href="../assets/css/app.css?v=20260915-1">
+  <link rel="stylesheet" href="../assets/css/tool-shell.css?v=20260915-1">
+  <link rel="stylesheet" href="./assets/voc.css?v=20260920-11">
+  <script defer src="../assets/vendor/supabase.js"></script>
+  <script defer src="../assets/js/config.js?v=20260827-9"></script>
+  <script defer src="../assets/js/core.js?v=20260909-1"></script>
+  <script defer src="../assets/js/app.js?v=20260827-2"></script>
+  <script defer src="../assets/js/api.js?v=20260920-2"></script>
+  <script defer src="../assets/js/tool-shell.js?v=20260915-1"></script>
+  <script defer src="./assets/voc-core.js?v=20260920-2"></script>
+  <script defer src="./assets/voc.js?v=20260920-12"></script>
+</head>
+<body class="voc-page">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="app-brand" id="voc-brand-link" href="./" aria-label="AMZ 运营工作台用户洞察工具">
+        <span class="logo-mark logo-mark--solid" aria-hidden="true"><span class="logo-mark__text">YE</span></span>
+        <span class="app-brand__text"><strong>AMZ 运营工作台</strong><span>用户洞察 · VOC</span></span>
+      </a>
+      <div class="topbar__actions">
+        <a class="btn btn--ghost" href="../">切换空间</a>
+        <span class="user-pill" id="workspace-name">正在核对业务空间…</span>
+        <span class="user-pill" id="user-email">正在核对登录状态…</span>
+        <button class="btn btn--ghost" type="button" data-sign-out>退出登录</button>
+      </div>
+    </div>
+  </header>
+  <aside class="tool-sidebar" aria-label="工具导航">
+    <div class="tool-sidebar__kicker">工具架构</div>
+    <nav class="tool-sidebar__nav">
+      <a class="tool-nav-link" id="keyword-tool-link" data-workspace-link href="../tool/"><span class="tool-nav-link__index">01</span><span class="tool-nav-link__copy"><strong>关键词作战</strong><small>Listing 与广告诊断</small></span></a>
+      <a class="tool-nav-link is-active" id="voc-sidebar-link" data-workspace-link href="./"><span class="tool-nav-link__index">02</span><span class="tool-nav-link__copy"><strong>用户洞察</strong><small>VOC 评论洞察</small></span></a>
+    </nav>
+    <p class="tool-sidebar__note">后续工具继续按独立目录、任务表和进程接入，互不搅动。</p>
+  </aside>
+
+  <main class="page-main voc-home">
+    <section class="voc-hero" aria-labelledby="voc-task-title">
+      <h1 id="voc-task-title">品牌化用户洞察</h1>
+      <p>输入 ASIN 自动抓取评论，<strong>逐字并结合语义分析</strong>，生成多维度产品洞察报告。</p>
+
+      <form class="voc-submit-form" id="voc-task-form" novalidate>
+        <div class="voc-search-bar">
+          <div class="voc-site-picker">
+            <span class="sr-only">站点</span>
+            <select id="voc-site" class="voc-site-native" name="site" aria-label="选择亚马逊站点">
+              <option value="US">美国站</option>
+              <option value="CA">加拿大站</option>
+              <option value="GB">英国站</option>
+              <option value="DE">德国站</option>
+            </select>
+            <button class="voc-site-trigger" id="voc-site-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="voc-site-menu">
+              <span class="voc-site-trigger__flag" id="voc-site-flag" aria-hidden="true"><img class="voc-site-flag-image" src="./assets/flags/us.svg" alt=""></span>
+              <span class="voc-site-trigger__label" id="voc-site-label">美国站</span>
+              <span class="voc-site-trigger__chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="voc-site-menu" id="voc-site-menu" role="listbox" aria-label="选择亚马逊站点" hidden></div>
+          </div>
+          <span class="voc-search-divider" aria-hidden="true"></span>
+          <div class="voc-asin-field">
+            <label class="sr-only" for="voc-asin-entry">ASIN</label>
+            <div class="voc-asin-token-input" id="voc-asin-token-input">
+              <span class="voc-asin-tokens" id="voc-asin-tokens" aria-label="已添加的 ASIN"></span>
+              <input id="voc-asin-entry" type="text" inputmode="text" placeholder="输入 ASIN，按空格或回车添加…" autocomplete="off" aria-describedby="asin-hint">
+            </div>
+            <input id="voc-asins" name="asins" type="hidden" value="">
+          </div>
+          <span class="voc-asin-count" id="voc-asin-count">0/10</span>
+          <button class="voc-analyze-button" id="voc-submit" type="submit"><span class="voc-search-icon" aria-hidden="true"></span>分析</button>
+        </div>
+        <p class="voc-input-hint" id="asin-hint">一次最多输入 10 个 ASIN，系统会先核对商品信息。</p>
+
+        <div class="voc-dimension-list" aria-label="报告分析维度">
+          <span>功能价值</span><span>产品使用对象</span><span>体验价值</span><span>场景</span><span>保障价值</span><span>人群</span><span>购买动机</span><span>未满足需求</span>
+        </div>
+        <div id="voc-feedback" class="message" hidden aria-live="polite"></div>
+
+      </form>
+    </section>
+
+    <section class="voc-preview-modal" id="voc-preview" hidden aria-live="polite" aria-labelledby="voc-preview-title" role="dialog" aria-modal="true">
+      <div class="voc-preview-modal__backdrop" data-preview-close aria-hidden="true"></div>
+      <div class="voc-preview-modal__dialog">
+        <header class="voc-preview-modal__header">
+          <div>
+            <h2 id="voc-preview-title">包含 0 个商品</h2>
+            <p id="voc-preview-summary">默认按近一月销量倒序展示</p>
+          </div>
+          <button class="voc-preview-modal__close" id="voc-preview-close" type="button" aria-label="关闭商品预览">×</button>
+        </header>
+        <div class="voc-preview-modal__toolbar">
+          <label class="voc-preview-modal__check-all"><input id="voc-preview-select-all" type="checkbox"><span aria-hidden="true"></span>选择当前页</label>
+          <button class="voc-preview-modal__clear" id="voc-preview-clear" type="button">清空</button>
+          <strong id="voc-preview-selection-count">0/0 已选择</strong>
+        </div>
+        <div class="voc-preview-modal__products" id="voc-preview-list" aria-label="商品预览列表"></div>
+        <div class="voc-preview-modal__settings">
+          <fieldset class="voc-choice-section">
+            <legend>每个 ASIN 分析下方指定条数 <span>（建议 200 条，太老旧的评论参考价值有限）</span></legend>
+            <div class="voc-choice-row">
+              <label class="voc-choice"><input type="radio" name="target_review_count" value="100" checked><strong>100 条</strong></label>
+              <label class="voc-choice"><input type="radio" name="target_review_count" value="200"><strong>200 条</strong><em>推荐</em></label>
+              <label class="voc-choice"><input type="radio" name="target_review_count" value="300"><strong>300 条</strong></label>
+              <label class="voc-choice"><input type="radio" name="target_review_count" value="500"><strong>500 条</strong></label>
+            </div>
+          </fieldset>
+          <fieldset class="voc-choice-section">
+            <legend>评论来源</legend>
+            <div class="voc-choice-row voc-choice-row--scope">
+              <label class="voc-choice voc-choice--scope"><input type="radio" name="review_scope" value="含变体评论" checked><strong>含变体评论 <em>默认</em></strong><small>评论不足时用同族变体补足</small></label>
+              <label class="voc-choice voc-choice--scope"><input type="radio" name="review_scope" value="仅本ASIN"><strong>仅本 ASIN</strong><small>排除变体评论，不足自动返还点数</small></label>
+            </div>
+          </fieldset>
+        </div>
+        <footer class="voc-preview-modal__footer">
+          <span id="voc-preview-config">选择评论条数后显示消耗</span>
+          <div>
+            <button class="voc-preview-modal__cancel" id="voc-preview-cancel" type="button">取消</button>
+            <button class="voc-preview-modal__confirm" id="voc-confirm" type="button"><span aria-hidden="true">ϟ</span>开始分析</button>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <section class="voc-capability-grid" aria-label="用户洞察能力">
+      <article><span class="voc-capability__icon voc-capability__icon--orange" aria-hidden="true"><svg viewBox="0 0 32 32" role="img"><circle cx="13" cy="12" r="6"/><path d="M3.5 25c1.8-4.7 5.1-7 9.5-7s7.7 2.3 9.5 7"/><circle cx="20.5" cy="20.5" r="6.2"/><path d="m25 25 4 4"/></svg></span><strong>用户洞察</strong><p>从真实评论中提炼用户画像、购买动机与未满足需求，建立产品与用户的精准连接</p></article>
+      <article><span class="voc-capability__icon voc-capability__icon--green" aria-hidden="true"><svg viewBox="0 0 32 32" role="img"><path d="M8 10h16l1.5 17h-19L8 10Z"/><path d="M11 10a5 5 0 0 1 10 0"/><path d="M16 14v8m-4-4h8"/></svg></span><strong>产品定义</strong><p>基于高频痛点与功能诉求，为产品开发和选品决策提供数据支撑</p></article>
+      <article><span class="voc-capability__icon voc-capability__icon--yellow" aria-hidden="true"><svg viewBox="0 0 32 32" role="img"><circle cx="12" cy="15" r="7"/><circle cx="20" cy="18" r="7"/><path d="M12 10v10m-3-5h6m5 0v6m-3-3h6"/></svg></span><strong>视觉策划</strong><p>提取用户关注的使用场景与体验卖点，为主图和 A+ 页面策划提供方向</p></article>
+      <article><span class="voc-capability__icon voc-capability__icon--beige" aria-hidden="true"><svg viewBox="0 0 32 32" role="img"><path d="M6 3.5h15l5 5V28H6V3.5Z"/><path d="M21 3.5V9h5M10 14h11M10 18h8"/><path d="m18 24 6.5-6.5 2 2L20 26l-3 .8.8-2.8Z"/></svg></span><strong>文案优化</strong><p>直接复用用户原话与高频词，让 Listing 标题、五点和 ST 更贴近搜索意图</p></article>
+    </section>
+
+    <section class="voc-reports" aria-labelledby="voc-task-list-title">
+      <div class="voc-reports__header">
+        <div><h2 id="voc-task-list-title">分析报告</h2><p id="voc-task-count">历史记录 · 最近 0 条</p><p class="voc-rating-legend"><strong>正向：</strong>4–5 星　<strong>中性：</strong>3 星　<strong>负向：</strong>1–2 星</p></div>
+        <button class="voc-refresh-button" id="voc-refresh" type="button">刷新</button>
+      </div>
+      <div class="table-loading" id="voc-loading"><div class="spinner"></div>正在加载任务…</div>
+      <div class="table-empty" id="voc-empty" hidden><p>历史记录为空；提交 ASIN 后，新报告会追加保留在这里。</p></div>
+      <div class="voc-task-grid" id="voc-table" hidden><div id="voc-task-body"></div></div>
+    </section>
+  </main>
+  <footer class="page-footer voc-home-footer">
+    <strong>AI 以品牌化维度逐字分析用户原声</strong>
+    <span>帮助品牌方理解用户需求</span>
+    <span>zyvorn.com　·　逐字分析　·　告别幻觉　·　<a class="page-footer__filing" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026126692号-1</a></span>
+  </footer>
+</body>
+</html>
