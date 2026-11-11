@@ -194,9 +194,10 @@
     const button = forms.apply.querySelector("button[type='submit']");
     const emailResult = KeywordToolCore.validateAccessRequestEmail(forms.apply.elements.email.value);
     if (!emailResult.ok) {
-      forms.apply.elements.email.setCustomValidity(emailResult.message);
+      const localizedMessage = window.WorkbenchI18n?.t(emailResult.message) || emailResult.message;
+      forms.apply.elements.email.setCustomValidity(localizedMessage);
       forms.apply.elements.email.reportValidity();
-      KeywordToolApp.setMessage(message, "error", emailResult.message);
+      KeywordToolApp.setMessage(message, "error", localizedMessage);
       return;
     }
     button.disabled = true;
