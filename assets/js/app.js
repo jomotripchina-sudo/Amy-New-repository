@@ -37,7 +37,10 @@
     const supabaseClient = getClient();
     const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data.session) {
-      window.location.replace(loginHref);
+      const target = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      const loginUrl = new URL(loginHref, window.location.href);
+      loginUrl.searchParams.set("returnTo", target);
+      window.location.replace(loginUrl.href);
       return null;
     }
     return data.session;
@@ -69,7 +72,7 @@
   function bindSignOut(loginHref) {
     const button = document.querySelector("[data-sign-out]");
     if (!button) return;
-    button.addEventListener("click", () => signOutAndRedirect(loginHref));
+    button.addEventListener("click", () => signOutAndRedirect("/login/"));
   }
 
   window.KeywordToolApp = Object.freeze({

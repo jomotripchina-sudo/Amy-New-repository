@@ -33,6 +33,17 @@
   let selectedWorkspaceKey = "";
   let recoverySessionReady = false;
 
+  function requestedReturnPath() {
+    const value = new URLSearchParams(window.location.search).get("returnTo");
+    if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/login")) return "";
+    try {
+      const target = new URL(value, window.location.origin);
+      return target.origin === window.location.origin ? `${target.pathname}${target.search}${target.hash}` : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
   function showMode(mode, options = {}) {
     if (!forms[mode]) return;
     const usesAuthTabs = mode === "login" || mode === "apply";
@@ -74,7 +85,7 @@
       if (!workspace?.id) {
         throw new Error("当前账号的三个业务空间尚未初始化，请稍后重试或联系管理员执行空间迁移。");
       }
-      window.location.replace(`./tool/?workspace=${encodeURIComponent(workspace.id)}`);
+      window.location.replace(requestedReturnPath() || `/tool/?workspace=${encodeURIComponent(workspace.id)}`);
       return true;
     } catch (error) {
       KeywordToolApp.setMessage(message, "error", KeywordToolCore.friendlyDataError(error, "空间暂时无法进入，请稍后重试。"));
@@ -97,7 +108,7 @@
   }
 
   function cleanRecoveryUrl(keepRecoveryMode) {
-    const clean = new URL("./", window.location.href);
+    const clean = new URL("/login/", window.location.href);
     if (keepRecoveryMode) clean.searchParams.set("mode", "recovery");
     window.history.replaceState({}, "", clean.href);
   }
@@ -223,7 +234,7 @@
     button.textContent = "正在发送…";
     KeywordToolApp.setMessage(message, "info", "");
     try {
-      const redirectTo = new URL("./?mode=recovery", window.location.href).href;
+      const redirectTo = new URL("/login/?mode=recovery", window.location.origin).href;
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
       if (error) throw error;
       KeywordToolApp.setMessage(message, "success", "如果该邮箱已注册，密码重置邮件已经发送。请检查收件箱和垃圾邮件。");
